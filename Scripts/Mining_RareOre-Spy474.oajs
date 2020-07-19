@@ -1,0 +1,341 @@
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	//
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	//
+//																																																																				//
+//			Il s'agit d'un script de mining. Les fichier includes aident à rendre ce fichier plus lisible, ils sont nécessaires au fonctionnement du				//
+//			script. Assurez-vous que les paramètres dans l'objet CONFIG corresponde avec ce que vous allez faire.																//
+//																																																																				//
+//			Le fichier peut faire fondre vos minerais au fur et à la mesure, pour décider quel minerais est fondu, voir fichier Minerais_Cryptonite		//
+//			Évidement, je ne suis pas responsable de quoi que ce soit avec le script, si vous perdez des minerais, c'est votre problème.							//
+//																																																																				//
+//			***********************************************************************************************		//
+//					Si vous avez besoin d'aide avec la configuration/utilisation du fichier, n'hésitez pas à me contacter sur Discord @Spy474						//
+//																																																																				//
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	//
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	//
+
+
+//#include ./Config/Sound.oajs
+//#include ./Config/Minerais_Cryptonite.oajs
+//#include ./Config/antiAFK-alert.oajs
+//#include ./Config/LocationMine.oajs
+
+var config = {
+  sound: true,														//off = Ne pas jouer de son lors de la prise de minerais
+  fondre: true,														//off = Ne fera pas fondre les minerais, peut-importe les valeurs du fichier config.
+  qteFondre: 3,													//Combien de minerais voulez-vous à de la suite (Grosseur de paquet)
+  votreMine: {} , 												//Ne pas modifier, vour plus bas
+  offsetPointDepart: 2,  									//Changer si vous voulez commencer plus loin dans la mine
+  poidsMax: Player.MaxWeight() - 25,		//Quand vouluez-vous retourner à votre maison.
+  pickaxe: '0x0E85',											// Type de la Pickaxe. Si vous utiliser un autre outil, à changer.
+  forge: '0x0FB1',												// Type de la forge à utiliser. (Le script est écrit pour utiliser la forge dans la mine)
+  tileOffset: 2,														// Distance maximum que vous pouvez miné autour de vous. Max: 2
+  scanDistance: 20,											// Distance max pour trouver une forge.
+  forgeOffset: { x: 1, y: 0, z: 0 },					// Offset de la forge pour positionnement.
+  minerai: '0x19BA|0x19B7|0x19B8|0x19B9|0x0F10|0x0F11|0x0F13|0x0F15|0x0F16|0x0F18|0x0F26|0x0F0F', 			//Minerais+Gems
+  lingot: '0x1BEF|0x1BE3|0x1BF5',								// Graphic d'un lingot simple et d'un lingo multi.
+  mineraiTrio: '0x19B8',									// Graphic pour 3 minerais
+  sacMining: '0x400A1E3C',								// Sac que vous utiliser pour miner.
+  positionMaison:												// Array de plusieurs XYZ, ajouter des points si vous avez des obstacles pour vous rendre. Le script par du premier point et les fait en ordres.
+  	[ {x: 1520, y: 2830, z: 0}, {x: 1530, y: 2799, z: 7}, ],					// Le dernier point doit avoir accès à tous vos sac en même temps (Distance +- 2)
+  sacMaisonMinerais: '0x4016079F',				// Sac au sol pour mettre vous minerais non-fondu
+  sacMaisonLingot: '0x4015D3C4', 				// Sac au sol pour mettre vous lingot
+  porteMaison: '0x401A9DEB', 				// Porte de la maison. Le script faire la porte derrière vous.
+};
+
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+function startMiningRare()  //Pour s'assurer d'avoir tous les fichiers de config, on doit avoir une fonction container.
+{
+	minerTout();
+}
+
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+function init() {
+		var mineLength = 0;
+	
+	if (Player.WarMode()) Orion.WarMode(0); //Désactiver le War mode
+	Orion.ToggleScript('antiAFKAlert')					//Lance le script d'alerte du système anti-AFK
+	Orion.Print('0x052D', "[i] Initialisation... Vous débuterez le script pour la recherche de minerais rare.");
+	if (config.sound) //Si le son est activer, annonce le début.
+		Orion.PlayWav(sound.backToWork)
+  	
+	// Vérifie le nombre de point dans la mine.
+	for ( var i in config.votreMine )
+	{
+		mineLength ++;
+	}	
+	return mineLength;
+} //END function init()
+
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+function minerTout() {
+	config.votreMine = Trinsic							// Indiquer quel mine vous utiliser. Attention, respecter la case de chaque lettre du fichier LocationMine.oajs
+	var mineLength = init();								// Calcul automatiquement le nombre de point dans la mine pour recommencer à 0 après.
+	
+	while (!Player.Dead()) 
+	{
+	    for ( index = (1+config.offsetPointDepart); index <= mineLength; index++  ) 		// Loop tous les points de la mine.
+		{
+	    	Orion.Print('0x052D', '[i] Votre personnage se déplace au point ' + index);
+	    	Orion.WalkTo(
+	      	config.votreMine[index]['x'], 				// X
+				config.votreMine[index]['y'], 				// Y
+				config.votreMine[index]['z'], 				// Z
+				0 ); 															// Précision XY
+				
+			//Loop tous les points accessible pour miner sur votre position
+			for (var x = -config.tileOffset; x <= config.tileOffset; x++) 
+			{
+				for (var y = -config.tileOffset; y <= config.tileOffset; y++) 
+				{
+					Mining(x, y);
+				}
+			}
+			
+			if (index >= mineLength)			// Reset les valeur, pour reparir à 0. Théoriquement, le script pour tourner à l'infini.
+			{
+				index = 0;
+				config.offsetPointDepart = 0;
+			}
+		} //END Loop all points
+	} //END While != Dead
+}
+
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+function Mining(x, y) 
+{
+	var sonMinerai = ''
+	Orion.ClearJournal();
+	Orion.Print('0x052D', '[i] Poche sur la case X:' + x + ' Y:' + y);
+	while (!Player.Dead()) 
+	{
+		//Check Weight => Maison/Banque
+		if (Player.Weight() >= config.poidsMax)
+		{
+			var positionJoueur = {x: Player.X(), y:Player.Y() , z:Player.Z() } 	//Enregistre la position du joueur pour y retourner
+			if (config.fondre == true)
+				fondreMinerais (config.qteFondre, config.sacMining) 							//Si activer: Faire fondre les matériaux
+				
+			for( i in config.positionMaison )				//Fait les 100 pas pour retourner à votre résidence.
+			{
+					Orion.WalkTo (
+					config.positionMaison[i]['x'],					//X
+					config.positionMaison[i]['y'],					//Y
+					config.positionMaison[i]['z'],					//Z
+					0,																		//Précision XY
+					255,																//Précision Z
+					0,																		//Run
+					1 );																	//Door 
+			}
+      	Orion.OpenContainer(config.sacMaisonLingot);		 //Ouvre les sac pour pouvoir les organiser.
+			Orion.OpenContainer(config.sacMaisonMinerais);		 //Ouvre les sac pour pouvoir les organiser.
+      	Orion.Wait(200);
+      	rangerMinerais(config.sacMining, config.sacMaisonMinerais, true);
+      	rangerLingot(config.sacMining, config.sacMaisonLingot, true);
+      	
+      	var porte = Orion.FindObject(config.porteMaison)
+      	Orion.WalkTo(porte.X(), porte.Y(), porte.Z(), 0, 255, 1, 1);
+      	Orion.UseObject(config.PorteMaison)
+      	Orion.Wait(500);
+      	Orion.WalkTo (
+      		positionJoueur.x, 					// X
+      		positionJoueur.y,					// Y
+      		positionJoueur.z, 					// Z
+      		0, 												// Précision XY
+      		255, 											// Précision Z
+      		1, 												// Run
+      		1 );												// Porte
+		} //END if overweight
+
+		//S'assure que la target est une case mine
+		if (Orion.ValidateTargetTileRelative('mine', x, y))
+		{
+			if (Orion.HaveTarget())
+				Orion.CancelTarget(); 		//Cancel toute target précédente
+			
+			Orion.UseType(config.pickaxe)
+			Orion.WaitJournal (
+				'Ou voulez-vous',					// Pattern *Recherche*
+				Orion.Now(),							//	Start Time
+				Orion.Now() + 2000,			// End Time
+				'me|sys' );								// Flags
+	   	Orion.Wait(200);
+	   	Orion.TargetTileRelative(
+	   		'mine', 										// Tile Flags
+	   		x,  												// X
+	   		y,   												// Y
+	   		Player.Z());  							// Z
+	   	
+	   	// Enregistre le résultat de la prise pour pouvoir le traiter.
+			var resultat = Orion.WaitJournal(
+				"Vous mettez|rocaille inutilisable|There is nothing here|Try mining|C'est trop loin|Vous ne pouvez pas",				// Pattern *Recherche
+				Orion.Now(),							//	Start Time
+				Orion.Now() + 7000,			// End Time
+				'me|sys' );								// Flags
+			               
+			if (resultat && resultat.FindTextID() >= 2) //IF il a rien à miner sur la case
+			{
+				Orion.Print('0x052D', '[i] Cible supprimée... Vous avez épuisé les ressources');
+				Orion.Wait(300);
+				if (config.sound)
+					Orion.PlayWav(sonMinerai)
+				return;
+			} else if ( resultat && resultat.FindTextID() === 0 )	// IF Obtiens quelque chose
+			{
+				for (var i in mineraisInfo) 
+				{
+					var mineraisBackpack = Orion.FindType( 
+						mineraisInfo[i].graphic,    	// Graphic
+						mineraisInfo[i].color, 			// Color
+						backpack,									// Container
+						'',													// Flags
+						'finddistance',							// Distance
+						'',													// Notoriety
+						false	);										// Recursive
+						
+					if (mineraisBackpack != '' && mineraisInfo[i].conserver == true) //If Type de minerais trouver dans le backpack
+					{
+						Orion.Wait(200);
+						sonMinerai = sound[mineraisInfo[i].sound]
+						rangerMinerais(backpack , config.sacMining, false);
+					} else if (mineraisBackpack != '' && mineraisInfo[i].conserver == false)
+					{
+						Orion.Wait(200);
+						Orion.Drop(mineraisBackpack, 0, Player.X(), Player.Y(), Player.Z());
+						Orion.Wait('moveitemdelay');
+						Orion.Print('0x052D', '[i] Cible supprimée... Vous ne voulez pas de ce minerais');
+						return;
+					}									
+				} //END FOR Loop des minerais dans Cryptonite.
+			} 
+		} else
+		{
+			Orion.Print('0x052D', "[i] Cible supprimée... Il n'y a rien à miner ici");
+			Orion.Wait(300);
+			return;
+		}//END ELSE Tile = Mine
+	} //END WHILE !=Dead  
+} //END function Mining
+
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+function fondreMinerais()
+{
+	Orion.Print('0x052D', '[i] Votre personnage va fondre les minerais');
+	var forgeSerial = Orion.FindType( config['forge'], -1, 'ground', '', config['scanDistance']);
+	
+		if (forgeSerial) 
+		{
+			var forge = Orion.FindObject(forgeSerial);
+			
+			if (Orion.WalkTo( forge.X() + config['forgeOffset'].x, forge.Y() + config['forgeOffset'].y, forge.Z() + config['forgeOffset'].z, 0, 255, 0)) //Si votre personnage peut se rendre à la forge, il fera fondre les minerais
+			{
+				var xOffset = 0
+				for (i in mineraisInfo)
+				{
+					while (mineraisInfo[i].fondre == true && Orion.Count('0x19BA|0x19B7|0x19B8|0x19B9', mineraisInfo[i].color, config.sacMining, 'finddistance', false) >= 3)
+					{
+						mineraisASeparer = Orion.FindType('0x19BA|0x19B7|0x19B8|0x19B9', mineraisInfo[i].color, config.sacMining, '', 'finddistance', '', true)
+						Orion.MoveItem(mineraisASeparer, config.qteFondre, backpack, 44 + xOffset, 65)
+						Orion.Wait('moveitemdelay');
+						xOffset++;
+					}
+					while (mineraisInfo[i].fondre == true && Orion.FindType('0x19BA|0x19B7|0x19B8|0x19B9', mineraisInfo[i].color, backpack, '', 'finddistance', '', true).length > 0 )
+					{
+						Orion.UseObject(Orion.FindType('0x19BA|0x19B7|0x19B8|0x19B9', mineraisInfo[i].color, backpack, '', 'finddistance', '', true)[0])
+					}
+				} //END for Loop tous les minerais
+			} //END if Personnage peut se rendre à la forge
+		} //END if ForgeSerial (Si une forge est présente)
+		rangerLingot(backpack, config.sacMining, false)
+} //END function FondreMinerais
+
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+function rangerMinerais(serialSacFrom, serialSacTo, organiserFinal) 
+{
+	Orion.Print('0x052D', '[i] Votre personnage organise les minerais dans ces sacs.');
+	//Déplace les minerais d'un sac à un autre. La position dépend du fichier config.
+	for (i in mineraisInfo)
+	{
+		var mineraisToMove = Orion.FindType(mineraisInfo[i].graphic, mineraisInfo[i].color, serialSacFrom);
+		var qteMinerais = Orion.FindType(mineraisInfo[i].graphic, mineraisInfo[i].color, serialSacTo)
+		//Verifie qu'il a des minerais à déplacer
+		if (mineraisToMove != '' && qteMinerais =='')
+		{
+			Orion.MoveItem(mineraisToMove, 0, serialSacTo, mineraisInfo[i].positionSac.x, mineraisInfo[i].positionSac.y, mineraisInfo[i].positionSac.z)
+			Orion.Wait('moveitemdelay');
+		} else if (mineraisToMove != '' && qteMinerais != '')
+		{
+			Orion.MoveItem(mineraisToMove, 0, serialSacTo)
+			Orion.Wait('moveitemdelay');
+		}
+	}
+	if (organiserFinal)
+	{
+		for (ix in mineraisInfo)
+		{
+			var mineraisToMove = Orion.FindType(mineraisInfo[ix].graphic, mineraisInfo[ix].color, serialSacTo);
+			if (mineraisToMove != '')
+			{
+				Orion.MoveItem(mineraisToMove, 0, serialSacTo, mineraisInfo[ix].positionSac.x, mineraisInfo[ix].positionSac.y, mineraisInfo[ix].positionSac.z)
+				Orion.Wait('moveitemdelay');
+			}
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+function rangerLingot(serialSacFrom, serialSacTo, organiserFinal) 
+{
+	Orion.Print('0x052D', '[i] Votre personnage organise les lingots dans ces sacs.');
+	for (i in mineraisInfo)
+	{
+		var lingotToMove = Orion.FindType(config.lingot, mineraisInfo[i].color, serialSacFrom);
+		var qteLingot = Orion.FindType(config.lingot, mineraisInfo[i].color, serialSacTo)
+		Orion.Print(qteLingot)
+		//Verifie qu'il a des minerais à déplacer
+		if (lingotToMove != '' && qteLingot =='')
+		{
+			Orion.MoveItem(lingotToMove, 0, serialSacTo, mineraisInfo[i].positionLingot.x, mineraisInfo[i].positionLingot.y, mineraisInfo[i].positionLingot.z)
+			Orion.Wait('moveitemdelay');
+		} else if (lingotToMove != '' && qteLingot != '')
+		{
+			Orion.MoveItem(lingotToMove, 0, serialSacTo)
+			Orion.Wait('moveitemdelay');
+		}
+	}
+	if (organiserFinal)
+	{
+		for (ix in mineraisInfo)
+		{
+			var lingotToMove = Orion.FindType(mineraisInfo[ix].graphic, mineraisInfo[ix].color, serialSacTo);
+			if (lingotToMove != '')
+			{
+				Orion.MoveItem(lingotToMove, 0, serialSacTo, mineraisInfo[i].positionLingot.x, mineraisInfo[i].positionLingot.y, mineraisInfo[i].positionLingot.z)
+				Orion.Wait('moveitemdelay');
+			}
+		}
+	}
+} //END function rangerLingot()
+
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+function dropMinerais(mX, mY, mZ) {
+  var minerais = Orion.FindType(config['minerai'], -1, 'backpack');
+
+  for (var i in minerais) {
+    minerai = Orion.FindObject(minerais[i]);
+    Orion.Drop(minerais[i], 0, mX, mY, mZ);
+    Orion.Print(minerai.Properties());
+    Orion.Wait('moveitemdelay');
+  }
+}
+
+function test()
+{
+}

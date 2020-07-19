@@ -1,0 +1,115 @@
+//#include ./Config/Sound.oajs
+
+var config = {
+	bandageTimer 					:	Orion.Now(),
+	soundOn								: true,
+	monstreProche					: '',
+	monstreCim							: '0x0003|0x0032',
+	
+	porteCim								: '0x4001DC15',
+	
+}
+
+function startEntrainementCim()
+{
+	Orion.WalkTo(2113, 2706, 0, 0, 255, 1, 1)
+	while(!Player.Dead())
+	{
+		if ( Player.Hits() < Player.MaxHits() && Orion.Now() > (config.bandageTimer + 5250) )
+			config.bandageTimer = bandagePerso();
+
+		if (Orion.Count('0x0E21') == 0)
+			nettoyerBandage();
+			
+		if (Player.Hits() <= 15)
+			sortirSoin();
+		
+		if (Orion.SkillValue('Healing', 'Real') >= 1000		)
+			sortirStealth();
+		
+		if ( config.monstreProche == '' || Orion.FindObject(config.monstreProche).isCorpse())
+			monstreProche = Orion.FindType(config.monstreCim, 'any', ground, 'near|mobile')
+		
+		Orion.Attack(config.monstreProche);
+	}
+	rezJoueur();
+	
+}
+	
+function bandagePerso()
+{
+	Orion.CancelTarget();
+	Orion.UseType('0x0E21'); 
+	Orion.WaitTargetObject(self);
+	Orion.Wait('waittargetdelay');
+	var bandageTimer = Orion.Now()
+	Orion.AddDisplayTimer(100, 5250, 'UnderChar', 'Circle|Bar', 'Bandage',  0, 100, '0x0049', 0, 'red' );
+	
+	//Orion.Equip(
+		//Orion.FindType('0x0EC2', '0x0000', backpack, '', 'finddistance', '', true)[0] );
+	//Orion.Wait('useitemdelay');
+	//Orion.Equip(
+	//	Orion.FindType('0x1B76', '0x075F', backpack, '', 'finddistance', '', true)[0] );
+	//Orion.Wait('useitemdelay');
+				
+	return bandageTimer;
+}
+
+function nettoyerBandage()
+{
+	Orion.CancelTarget();
+	Orion.UseType('0x0E20'); 
+	Orion.WaitTargetType('0x154D','0x0000', ground, '', 5);
+	Orion.Wait('waittargetdelay');
+}
+	
+function sortirSoin()
+{
+	if (config.soundOn === true)
+		Orion.PlayWav(sound.holyCow);
+		
+	if ( Orion.FindObject(config.porteCim).Graphic() === '0x0827')
+		{
+			Orion.UseObject(config.porteCim);
+			Orion.Wait('waittargetdelay');
+		}	
+		
+	Orion.WalkTo(2113, 2708, 0, 0)
+	
+	while ( Player.Hits() < Player.MaxHits() )
+	{
+		if ( Orion.Now() > (config.bandageTimer + 5200) )
+			config.bandageTimer = bandagePerso();
+			
+		if (Orion.Count('0x0E21') == 0)
+			nettoyerBandage();
+	}
+	Orion.WalkTo(2113, 2706, 0, 0, 255, 1, 1)
+	if (config.soundOn === true)
+		Orion.PlayWav(sound.killOldStyle)
+		
+}
+function sortirStealth()
+{
+	if ( Orion.FindObject(config.porteCim).Graphic() === '0x0827')
+		{
+			Orion.UseObject(config.porteCim);
+			Orion.Wait('waittargetdelay');
+		}	
+		
+	Orion.WalkTo(2106, 2712, 5, 0);
+	Orion.WarMode(0);
+	Orion.Wait(1000)
+	
+	while (!Player.Dead())
+	{
+		Orion.UseSkill('Stealth')
+		Orion.WaitJournal('Vous êtes bien caché.', Orion.Now(), 0, 'my|sys')
+	}
+}
+	
+function rezJoueur()
+{
+	Orion.UseType('0x0EDC');
+	sortirSoin()
+}

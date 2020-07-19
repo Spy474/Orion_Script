@@ -1,0 +1,36 @@
+var config = {
+		"outilCarto" 					: "0x0FBF"
+}
+
+function cartographyTraining()
+{
+	//Vérifier quantité de carte disponible dans l'inventaire
+	var emptyMaps = Orion.Count(0x14EB, 'any', 'backpack');
+	var mapReussi = 0;
+	while (mapReussi < emptyMaps) 
+	{
+		Orion.UseType(config.outilCarto);
+		if (Orion.WaitForMenu(1000))
+		{
+			var menuCarto = Orion.GetMenu('last');
+			
+			if (menuCarto !== null && menuCarto.Name() == 'What sort of map do you want to draw?' )
+			{
+					menuCarto.Select('World Map')
+					Orion.AddDisplayTimer(101, 2000, 'underchar', 'Circle|Bar', 'Cartographe', 0, 130, '0x0049', 0, 'red');
+			}
+			var result = Orion.WaitJournal('Vous mettez le carte|Votre carte est illisible...|Vous ne pouvez rien faire avec ce que vous avez', Orion.Now(), Orion.Now() + 3000)
+			
+			if (result && result.FindTextID()==0)
+			{
+				mapReussi++;
+				Orion.Print('Vous avez reussis ' + mapReussi + ' cartes sur ' + emptyMaps);
+			} else if (result && result.FindTextID()==1)
+			{
+				Orion.Print('Vous avez échouer la tentative de création de la carte...');
+			}
+		}
+	}
+		Orion.Print('Félicitation, vous avez produit  ' + mapReussi + ' cartes.');
+		Orion.Terminate('all');
+}

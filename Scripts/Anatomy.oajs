@@ -1,0 +1,43 @@
+function anatomyTrain()
+{
+	Orion.ToggleScript('levelupCount');
+	while ( Orion.SkillValue('Anatomy', 'real') < 1000)
+	{
+		Orion.CancelTarget();
+		Orion.UseSkill('Anatomy', self);
+		Orion.WaitJournal('Votre examen|Cela ressemble', Orion.Now(), Orion.Now() + 10000);
+	}
+	Orion.LogOut()
+}
+
+function levelupCount ()
+{
+var deltaSkill = 0
+	Orion.ClearJournal();
+	var skillDepart = Orion.SkillValue('Anatomy', 'real')
+	while (!Player.Dead())
+	{
+		if (skillDepart < Orion.SkillValue('Anatomy', 'real'))
+		{
+			Orion.Print('Level up!');
+			skillDepart = Orion.SkillValue('Anatomy', 'real')
+			deltaSkill++;
+			
+			Orion.Print('0x052D', '[i] Anatomy à monter de ' + formatSkill(deltaSkill) +'% depuis le début du script');
+		}
+		if (Orion.InJournal('infoAnatomy', '', self, 'any') != null)
+		{
+			Orion.ClearJournal();
+			Orion.Print('0x052D', '[i] Anatomy à monter de ' + formatSkill(deltaSkill) +'% depuis le début du script');
+		}
+	}
+}
+
+function formatSkill (skill)
+{
+	if (skill < 10)
+		skillFormat = '0.' + skill
+	else
+		skillFormat = skill.toString().slice(0, -1) + '.' + skill.toString().slice(-1)
+	return skillFormat;
+}

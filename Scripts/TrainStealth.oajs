@@ -1,0 +1,114 @@
+var functionRunning = 'fixe';
+var deltaFixe = 0;
+var deltaMobile = 0;
+
+function init()
+{
+	Orion.ToggleScript('levelupCount');
+	Orion.ToggleScript('trainStealthFix');
+	while(!Player.Dead())
+	{
+		if(functionRunning === 'fixe')
+		{
+			Orion.ToggleScript('trainStealthFix');
+			Orion.ToggleScript('trainStealth');
+			Orion.ToggleScript('marcherMaison');
+			functionRunning = 'mobile';
+			Orion.Print('0x052D', '[i] Vous commencez à marcher pour entrainer Stealth');
+			Orion.Wait(150000);
+		}
+		if(functionRunning === 'mobile')
+		{
+			Orion.ToggleScript('trainStealth');
+			Orion.ToggleScript('marcherMaison');
+			Orion.ToggleScript('trainStealthFix');
+			functionRunning = 'fixe'
+			Orion.Print('0x052D', '[i] Vous entrainer Stealth de façon fixe');
+			Orion.Wait(150000);
+		}
+	}
+}
+
+function trainStealth()
+{
+	while (!Player.Dead())
+	{
+		Orion.UseSkill('Stealth')
+		Orion.WaitJournal('Vous avez ete révélé.', Orion.Now(), 0, 'my|sys')
+	}
+}
+
+function marcherMaison()
+{
+	while (!Player.Dead())
+	{
+		Orion.WalkTo(1529, 2797, 7, 0, 0, 0);
+		Orion.WalkTo(1533, 2797, 7, 0, 0, 0);
+		Orion.WalkTo(1533, 2801, 7, 0, 0, 0);
+		Orion.WalkTo(1529, 2801, 7, 0, 0, 0);
+	}
+}
+
+function trainStealthFix()
+{
+	Orion.WalkTo(1531, 2799, 7, 0, 255, 0);
+	while (!Player.Dead())
+	{
+		Orion.UseSkill('Stealth')
+		Orion.WaitJournal('Vous êtes bien caché.', Orion.Now(), 0, 'my|sys')
+	}
+}
+
+function levelupCount ()
+{
+	Orion.ClearJournal();
+	var skillDepart = Orion.SkillValue('Stealth', 'real')
+	while (!Player.Dead())
+	{
+		if (Player.X() === 1531 && Player.Y() === 2799)
+			functionRunning = 'fixe'
+		else
+			functionRunning = 'mobile'
+		if (skillDepart < Orion.SkillValue('Stealth', 'real'))
+		{
+			Orion.Print('Level up!');
+			skillDepart = Orion.SkillValue('Stealth', 'real')
+			
+			if (functionRunning === 'fixe')
+				deltaFixe++;
+			
+			if (functionRunning === 'mobile')
+				deltaMobile++;
+			
+			Orion.Print('0x052D', '[i] Stealth à monter de ' + formatSkill(deltaFixe) +'% en étant fixe');
+			Orion.Print('Stealth à monter de ' + formatSkill(deltaMobile) +'% en étant marchant')
+		}
+		if (Orion.InJournal('infoStealth', '', self, 'any') != null)
+		{
+			Orion.ClearJournal();
+			Orion.Print('0x052D', '[i] Stealth à monter de ' + formatSkill(deltaFixe) +'% en étant fixe');
+			Orion.Print('0x052D', '[i] Stealth à monter de ' + formatSkill(deltaMobile) +'% en étant marchant')
+		}
+	}
+}
+
+function formatSkill (skill)
+{
+	if (skill < 10)
+		skillFormat = '0.' + skill
+	else
+		skillFormat = skill.toString().slice(0, -1) + '.' + skill.toString().slice(-1)
+	return skillFormat;
+}
+
+function classeLevelUp()
+{	
+	while (!Player.Dead())
+	{
+		if( Orion.InJournal('Votre temps de levelup est terminé. Utiliser .levelup') != null)
+		{
+			Orion.Say('.levelup');
+			Orion.ClearJournal();
+		}
+	}
+}

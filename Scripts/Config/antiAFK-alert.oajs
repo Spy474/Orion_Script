@@ -1,0 +1,19 @@
+//#include Sound.oajs
+
+function startAFKAlert()
+{
+	antiAFKAlert();
+}
+
+function antiAFKAlert ()
+{
+	Orion.Print('0x052D', '[i] Vous receverez une alerte lorsque le système anti-AFK apparait.')
+	while (!Player.Dead())
+	{
+		if (Orion.GetGump('0x00169408', '0x80A00468'))
+		{
+			Orion.PlayWav(sound.attention);
+			Orion.Wait(20000)
+		}
+	}
+}

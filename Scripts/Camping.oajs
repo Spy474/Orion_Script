@@ -1,0 +1,28 @@
+var regex = /dragonnier/
+
+function test()
+{
+while (true)
+{
+	if( Orion.WaitJournal('Minoc', Orion.Now(), 0) != null )
+	{
+		Orion.Print('Yes')
+	}
+}
+}
+function openDragonnierMenu ()
+{
+	if ( Orion.FindType('0x0190', 'any', ground) != '')
+	{
+		var dragonnierObj = Orion.FindObject(Orion.FindType('0x0190', 'any', ground))
+		var dragonnierSerial = dragonnierObj.Serial();
+		var dragonnierName = dragonnierObj.FullName();
+		
+		if (regex.exec(dragonnierName) == 'dragonnier')
+		{
+			Orion.UseObject(dragonnierSerial)
+			Orion.WaitForGump()
+		} else
+			Orion.Print('0x066D', "[i] Il n'y a pas de dragonnier prêt de vous")
+	}
+}

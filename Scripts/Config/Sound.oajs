@@ -1,0 +1,45 @@
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	//
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	//
+//																																																																				//
+//			Il s'agit d'un script de configuration. Vous devez importer le fichier dans votre script pour pouvoir l'utiliser. Voir /#include								//
+//																																																																				//
+//			***********************************************************************************************		//
+//					Si vous avez besoin d'aide avec la configuration/utilisation du fichier, n'hésitez pas à me contacter sur Discord @Spy474						//
+//																																																																				//
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	//
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	//
+
+
+var sound = 
+{
+  electroWin : 'C:/Cryptonite - Le nouveau chapitre/Game/Win32/Mul/OA/Sounds/ElectroWin.wav',
+  ding : 'C:/Cryptonite - Le nouveau chapitre/Game/Win32/Mul/OA/Sounds/ShipsBell.wav',
+  
+  // Duke Nuken
+  holyShit : 'C:/Cryptonite - Le nouveau chapitre/Game/Win32/Mul/OA/Sounds/Holy shit.wav',
+  dieSOB : 'C:/Cryptonite - Le nouveau chapitre/Game/Win32/Mul/OA/Sounds/Die you S.O.B..wav',
+  shitHappens : 'C:/Cryptonite - Le nouveau chapitre/Game/Win32/Mul/OA/Sounds/Shit happens.wav',
+  eatShit : 'C:/Cryptonite - Le nouveau chapitre/Game/Win32/Mul/OA/Sounds/Eat shit and die.wav',  
+  SOB : 'C:/Cryptonite - Le nouveau chapitre/Game/Win32/Mul/OA/Sounds/Son of a bitch.wav',
+  holyCow : 'C:/Cryptonite - Le nouveau chapitre/Game/Win32/Mul/OA/Sounds/Holy cow.wav',
+  damnGood : 'C:/Cryptonite - Le nouveau chapitre/Game/Win32/Mul/OA/Sounds/Damn Im good..wav',
+  ripHeadShit: 'C:/Cryptonite - Le nouveau chapitre/Game/Win32/Mul/OA/Sounds/Ill rip your head off and shit down your neck.wav',
+  damnUgly: 'C:/Cryptonite - Le nouveau chapitre/Game/Win32/Mul/OA/Sounds/Damn youre ugly.wav',
+  wasted : 'C:/Cryptonite - Le nouveau chapitre/Game/Win32/Mul/OA/Sounds/Wasted.wav',
+  yippie : 'C:/Cryptonite - Le nouveau chapitre/Game/Win32/Mul/OA/Sounds/Yippie kaiay mother fer.wav',
+  tasteBall : 'C:/Cryptonite - Le nouveau chapitre/Game/Win32/Mul/OA/Sounds/Have A Taste of My Ball.wav',
+  ballsSteel : 'C:/Cryptonite - Le nouveau chapitre/Game/Win32/Mul/OA/Sounds/Ive got balls of steel.wav',  
+  birthControl : 'C:/Cryptonite - Le nouveau chapitre/Game/Win32/Mul/OA/Sounds/Youre an inspiration for birth control.wav',
+  seeDick: 'C:/Cryptonite - Le nouveau chapitre/Game/Win32/Mul/OA/Sounds/You Can See My Dck From Here.wav',  
+  killOldStyle : 'C:/Cryptonite - Le nouveau chapitre/Game/Win32/Mul/OA/Sounds/Im Gonna Kill You Old Style.wav',  
+  backToWork : 'C:/Cryptonite - Le nouveau chapitre/Game/Win32/Mul/OA/Sounds/Get back to work you slacker.wav',  
+  
+  // Google Translate Fr
+  attention : 'C:/Cryptonite - Le nouveau chapitre/Game/Win32/Mul/OA/Sounds/attention.wav',
+  arcanite : 'C:/Cryptonite - Le nouveau chapitre/Game/Win32/Mul/OA/Sounds/arcanite.wav',
+  cryptoAntique : 'C:/Cryptonite - Le nouveau chapitre/Game/Win32/Mul/OA/Sounds/Cryptonite Antique.wav',
+  cryptonite : 'C:/Cryptonite - Le nouveau chapitre/Game/Win32/Mul/OA/Sounds/Cryptonite.wav',
+  platine : 'C:/Cryptonite - Le nouveau chapitre/Game/Win32/Mul/OA/Sounds/Platine.wav',
+  pierreMale : 'C:/Cryptonite - Le nouveau chapitre/Game/Win32/Mul/OA/Sounds/Pierre Malefique.wav',
+  
+};
